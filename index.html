@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AR.js A-Frame Location-based</title>
+
+    <!-- A-Frame and AR.js libraries -->
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script
+      type="text/javascript"
+      src="https://github.com/AR-js-org/AR.js/releases/download/3.4.5/ar-threex-location-only.js"
+    ></script>
+    <script type="module">
+      import "https://github.com/AR-js-org/AR.js/releases/download/3.4.5/aframe-ar.js";
+    </script>
+    <script
+      type="text/javascript"
+      src="https://raw.githack.com/AR-js-org/AR.js/master/three.js/build/arjs-threex-location.js"
+    ></script>
+    <script type="module">
+      import "https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js";
+    </script>
+    <script type="module">
+      import "https://unpkg.com/aframe-geopose-component";
+      import "https://unpkg.com/aframe-environment-component";
+    </script>
+    <script
+      type="text/javascript"
+      src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"
+    ></script>
+    <script
+      type="text/javascript"
+      src="https://github.com/AR-js-org/AR.js/releases/download/3.4.5/aframe-ar.js"
+    ></script>
+    <style>
+      #loading-screen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #000; /* Set your desired background color */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+      }
+
+      #loading-logo {
+        width: 260px;
+        height: 330px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="loading-screen">
+      <img
+        id="loading-logo"
+        src="https://cdn.glitch.global/29ec32fc-e016-4119-b992-b82c32c7af75/Artboard%202%40150x-8.png?v=1704797883534"
+        alt="Loading Logo"
+      />
+    </div>
+    <!-- AR scene setup -->
+    <a-scene
+      vr-mode-ui="enabled: false"
+      arjs="sourceType: webcam; videoTexture: true; debugUIEnabled: false; detectionMode: mono_and_matrix; trackingMethod: best;"
+      renderer="antialias: true; alpha: true; logarithmicDepthBuffer: true;"
+      environment-scan
+      loaded="true"
+    >
+      <!-- Camera setup -->
+      <a-camera
+        id="my-camera"
+        gps-camera="gpsMinDistance: 0; stabilizationTime: 1"
+        rotation-reader
+        device-orientation-permission-ui
+        accelerometer
+        gyroscope
+        arjs-device-type
+        arjs-tweaks
+        look-controls
+        environment-scan
+        ar-hit-test
+      ></a-camera>
+
+      <!-- 3D Models -->
+
+      <a-entity
+        id="my-chariot"
+        gltf-model="https://cdn.glitch.me/6ed98e75-b11d-422d-a548-8f09d4a3e98f/Final%20Everything.glb?v=1704971757567"
+        gps-entity-place="latitude: 29.938310; longitude: 76.897120; useContiguous: true; useFilter: true"
+        scale="0.08 0.08 0.08"
+        rotation="0 180 0"
+        ar-hit-test
+      ></a-entity>
+
+      <a-sound
+        id="my-sound"
+        src="https://cdn.glitch.global/29ec32fc-e016-4119-b992-b82c32c7af75/Voice.m4a?v=1704864180058"
+        autoplay="true"
+        position="0 0 0"
+      ></a-sound>
+    </a-scene>
+
+    <!-- Static Image and Buttons outside A-Frame scene -->
+    <div
+      style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      "
+    >
+      <!-- Image display -->
+      <img
+        id="my-questionnaire"
+        style="
+          position: absolute;
+          top: 7.5%;
+          left: 10%;
+          width: 80%;
+          height: 70%;
+          display: none;
+          opacity: 0.75;
+        "
+      />
+
+      <!-- Toggle Image Display Button -->
+      <button
+        style="
+          position: absolute;
+          width: 15%;
+          height: 4%;
+          top: 10px;
+          left: 72.5%;
+          background-color: black;
+          opacity: 0.8;
+          color: white;
+          pointer-events: auto;
+        "
+        onclick="toggleImageDisplay()"
+      >
+        Quiz!
+      </button>
+
+      <!-- Remove Image Button -->
+      <button
+        style="
+          position: absolute;
+          width: 4%;
+          height: 4%;
+          top: 10px;
+          left: 90%;
+          background-color: gray;
+          opacity: 0.8;
+          color: white;
+          pointer-events: auto;
+        "
+        onclick="removeImage()"
+      >
+        X
+      </button>
+    </div>
+
+    <!-- Custom script for image display -->
+    <script>
+      var images = [
+        "https://cdn.glitch.global/29ec32fc-e016-4119-b992-b82c32c7af75/Artboard%20%E2%80%93%201.png?v=1704795227431",
+        "https://cdn.glitch.global/29ec32fc-e016-4119-b992-b82c32c7af75/Artboard%20%E2%80%93%202.png?v=17047952279567",
+        "https://cdn.glitch.global/29ec32fc-e016-4119-b992-b82c32c7af75/Artboard%20%E2%80%93%204.png?v=1704795478195",
+      ];
+
+      var currentImageIndex = 0;
+
+      function toggleImageDisplay() {
+        var image = document.getElementById("my-questionnaire");
+
+        if (image) {
+          if (currentImageIndex >= images.length) {
+            // Reset to the first image when all images are displayed
+            currentImageIndex = 0;
+          }
+
+          image.src = images[currentImageIndex];
+          image.style.display = "block";
+
+          // Increment the index for the next image
+          currentImageIndex++;
+        }
+      }
+
+      function removeImage() {
+        var image = document.getElementById("my-questionnaire");
+
+        if (image) {
+          image.style.display = "none";
+        }
+      }
+
+      var soundPlayed = false; // Flag to track if the sound has been played
+
+      function playSound() {
+        var sound = document.getElementById("my-sound");
+
+        if (sound && sound.components.sound.soundLoaded && soundPlayed) {
+          sound.components.sound.playSound();
+        }
+
+        // Set the flag to true after the first execution
+        soundPlayed = true;
+      }
+
+      setTimeout(function () {
+        playSound(); // Initial play
+        setInterval(playSound, 10000); // Subsequent plays every 10 seconds
+      }, 10000); // Initial delay of 10 seconds
+
+      document
+        .querySelector("a-scene[loaded]")
+        .addEventListener("loaded", function () {
+          document.getElementById("loading-screen").style.display = "none";
+        });
+    </script>
+  </body>
+</html>
